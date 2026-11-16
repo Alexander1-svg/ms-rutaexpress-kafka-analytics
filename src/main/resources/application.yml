@@ -1,0 +1,44 @@
+server:
+  port: ${SERVER_PORT:8091}
+
+spring:
+  application:
+    name: kafka-analytics
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    listener:
+      ack-mode: record
+      concurrency: ${KAFKA_LISTENER_CONCURRENCY:1}
+
+app:
+  kafka:
+    topics:
+      shipments: ${KAFKA_TOPIC_SHIPMENTS:rutaexpress.shipments.events.v1}
+      analytics: ${KAFKA_TOPIC_ANALYTICS:rutaexpress.shipments.analytics.v1}
+      dead-letter-suffix: ${KAFKA_DLT_SUFFIX:.DLT}
+    consumer-group: ${KAFKA_CONSUMER_GROUP:rutaexpress-kafka-analytics-v1}
+    publish-timeout: ${KAFKA_PUBLISH_TIMEOUT:10s}
+    retry-interval: ${KAFKA_RETRY_INTERVAL:1s}
+    retry-max-attempts: ${KAFKA_RETRY_MAX_ATTEMPTS:2}
+    recent-events-limit: ${ANALYTICS_RECENT_EVENTS_LIMIT:20}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
